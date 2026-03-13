@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-green: #23352B;
+  --color-brand-gold: #A97A50;
+  --color-brand-offwhite: #F5F2ED;
+  --color-brand-yellow: #FCE7A4;
+  
+  --color-status-available: #22c55e;
+  --color-status-sold: #ef4444;
+  --color-status-reserved: #f59e0b;
+}
+
+@layer base {
+  body {
+    @apply bg-[#2A2A2A] text-brand-offwhite antialiased overflow-hidden;
+  }
+}
+
+.map-container {
+  cursor: grab;
+  background-image: radial-gradient(#ffffff10 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.map-container {
+  cursor: grab;
+}
+
+.map-container:active {
+  cursor: grabbing;
+}
+
+.lot-path {
+  transition: all 0.3s ease;
+  pointer-events: all;
+}
+
+.lot-path:hover {
+  fill-opacity: 0.4;
+  stroke-width: 2;
+}
+

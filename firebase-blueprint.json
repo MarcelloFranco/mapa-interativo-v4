@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Application user with roles",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "broker"] },
+        "name": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Config": {
+      "title": "Project Config",
+      "description": "Global settings for the allotment project",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "address": { "type": "string" },
+        "logo": { "type": "string" },
+        "backgroundImage": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "secondaryColor": { "type": "string" }
+      }
+    },
+    "Lot": {
+      "title": "Lot",
+      "description": "A specific lot in the allotment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "string" },
+        "block": { "type": "string" },
+        "area": { "type": "number" },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["available", "reserved", "sold"] },
+        "points": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "number", "points", "status"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Client interest in a lot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "lotId": { "type": "string" },
+        "brokerId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientEmail": { "type": "string" },
+        "clientPhone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["clientName", "clientPhone", "lotId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and roles"
+    },
+    "/config/global": {
+      "schema": "Config",
+      "description": "Global project configuration"
+    },
+    "/lots/{lotId}": {
+      "schema": "Lot",
+      "description": "Lot data"
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Customer leads"
+    }
+  }
+}
