@@ -1,0 +1,124 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: userId (uid)
+// Fields:
+//   - uid: string (required)
+//   - email: string (required)
+//   - role: string (required, ['admin', 'broker'])
+//   - name: string (optional)
+//
+// Collection: config
+// Document ID: global
+// Fields:
+//   - title: string
+//   - address: string
+//   - logo: string
+//   - backgroundImage: string
+//   - primaryColor: string
+//   - secondaryColor: string
+//
+// Collection: lots
+// Document ID: lotId
+// Fields:
+//   - id: string (required)
+//   - number: string (required)
+//   - block: string
+//   - area: number
+//   - price: number
+//   - status: string (required, ['available', 'reserved', 'sold'])
+//   - points: string (required)
+//   - description: string
+//
+// Collection: leads
+// Document ID: leadId
+// Fields:
+//   - id: string (required)
+//   - lotId: string (required)
+//   - brokerId: string
+//   - clientName: string (required)
+//   - clientEmail: string
+//   - clientPhone: string (required)
+//   - createdAt: timestamp (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          (request.auth.token.email == "redrocket.agencia@gmail.com" && request.auth.token.email_verified == true)
+        );
+    }
+
+    function isBroker() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'broker';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if (isAuthenticated() && (isOwner(userId) || isAdmin())) || 
+                    (resource.data.role == 'broker');
+      allow create: if (isAuthenticated() && isOwner(userId) && 
+                    hasOnlyAllowedFields(['uid', 'email', 'role', 'name']) &&
+                    (
+                      request.resource.data.role == 'broker' || 
+                      (request.resource.data.role == 'admin' && request.auth.token.email == "redrocket.agencia@gmail.com")
+                    )) || isAdmin();
+      allow update: if isAuthenticated() && (
+        (isOwner(userId) && request.resource.data.role == resource.data.role) || // Owner can't change own role
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Config collection
+    match /config/{configId} {
+      allow read: if true; // Publicly readable for the landing page
+      allow write: if isAdmin();
+    }
+
+    // Lots collection
+    match /lots/{lotId} {
+      allow read: if true; // Publicly readable
+      allow write: if isAdmin();
+    }
+
+    // Leads collection
+    match /leads/{leadId} {
+      allow read: if isAdmin() || (isBroker() && resource.data.brokerId == request.auth.uid);
+      allow create: if true; // Anyone can submit a lead
+      allow update, delete: if isAdmin();
+    }
+  }
+}
